@@ -5,10 +5,10 @@
 
   <form method="post">
     {% csrf_token %}
-    <input
-      type="submit"
-      value="Yes"
-      class="btn btn-danger"
-    />
+    <input type="submit" value="Yes" class="btn btn-danger">
+
+    <a href="{{ request.META.HTTP_REFERER }}">
+      Cancel
+    </a>
   </form>
 {% endblock %}

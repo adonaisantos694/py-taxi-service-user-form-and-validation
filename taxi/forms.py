@@ -1,7 +1,11 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import get_user_model
 
-from .models import Driver, Car
+from .models import Car
+
+User = get_user_model()
 
 
 def validate_license(license_number: str) -> str:
@@ -12,9 +16,7 @@ def validate_license(license_number: str) -> str:
         not license_number[:3].isalpha()
         or not license_number[:3].isupper()
     ):
-        raise ValidationError(
-            "First 3 must be uppercase letters"
-        )
+        raise ValidationError("First 3 must be uppercase letters")
 
     if not license_number[3:].isdigit():
         raise ValidationError("Last 5 must be digits")
@@ -22,41 +24,29 @@ def validate_license(license_number: str) -> str:
     return license_number
 
 
-class DriverCreateForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+class DriverCreateForm(UserCreationForm):
+    license_number = forms.CharField(max_length=8)
 
     class Meta:
-        model = Driver
+        model = User
         fields = (
             "username",
             "first_name",
             "last_name",
             "license_number",
-            "password",
         )
 
     def clean_license_number(self) -> str:
-        return validate_license(
-            self.cleaned_data["license_number"]
-        )
-
-    def save(self, commit: bool = True):
-        driver = super().save(commit=False)
-        driver.set_password(self.cleaned_data["password"])
-        if commit:
-            driver.save()
-        return driver
+        return validate_license(self.cleaned_data["license_number"])
 
 
 class DriverLicenseUpdateForm(forms.ModelForm):
     class Meta:
-        model = Driver
+        model = User
         fields = ("license_number",)
 
     def clean_license_number(self) -> str:
-        return validate_license(
-            self.cleaned_data["license_number"]
-        )
+        return validate_license(self.cleaned_data["license_number"])
 
 
 class CarForm(forms.ModelForm):
